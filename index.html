@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>blog-qrcode-share</title>
+		<style>
+			button {
+				background-color: #57baf9;
+			}
+			.container {
+				display: flex;
+			}
+			.left {
+				width: 300px;
+				flex: 1;
+			}
+			.right {
+				flex: 4;
+			}
+			#text {
+				width: 200px;
+				display: inline-block;
+			}
+			#btnUpdate {
+				margin-top: 10px;
+			}
+			#qrcode {
+				margin: 10px;
+				margin-left: 0px;
+			}
+			#myCanvas {
+				border: 1px solid #000;
+				float: left;
+			}
+			#imgConverted {
+				float: left;
+				border: 0px solid #00f;
+				margin-left: 10px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="left">
+				<h3>生成自定义博客二维码图片</h3>
+				<input id="text" type="text" value="https://kok-s0s.top/" />
+				<button type="button" id="btnUpdate">刷新</button>
+
+				<div id="qrcode"></div>
+				<button type="button" id="btnSaveQrCode">保存二维码</button>
+				<button type="button" id="btnDisplay">预览</button>
+				<button type="button" id="btnDownload">下载</button>
+			</div>
+
+			<div class="right">
+				<!-- 设置 canvas 生成图片大小 -->
+				<canvas id="myCanvas" width="400" height="500"></canvas>
+				<img id="imgConverted" src="" />
+			</div>
+		</div>
+	</body>
+	<script src="qrcode.js"></script>
+	<script>
+		const btnDisplay = document.querySelector("#btnDisplay");
+		const btnDownload = document.querySelector("#btnDownload");
+		const btnSaveQrCode = document.querySelector("#btnSaveQrCode");
+		const btnUpdate = document.querySelector("#btnUpdate");
+		const imgConverted = document.querySelector("#imgConverted");
+		const myCanvas = document.querySelector("#myCanvas");
+		const ctx = myCanvas.getContext("2d", { alpha: false });
+
+		let qrcode = new QRCode("qrcode", {
+			width: 60,
+			height: 60,
+			colorDark: "#000000",
+			colorLight: "#ffffff",
+			correctLevel: QRCode.CorrectLevel.H,
+		});
+
+		// 使用 canvas 绘制图片
+		const getCanvasImage = () => {
+			// 设置图片背景颜色
+			ctx.fillStyle = "#F9F9F9";
+			ctx.fillRect(0, 0, myCanvas.width, myCanvas.height);
+
+			// 设置字体样式及文本输入-按你自身平台选择合适字体
+			// const fontfamily = "px Helvetica, Tahoma, Arial, STXihei, '华文细黑', 'Microsoft YaHei', '微软雅黑', sans-serif";
+			const fontfamily = "px serif";
+
+			ctx.font = "24" + fontfamily;
+			ctx.fillStyle = "black";
+			ctx.fillText("生成自定义博客二维码图片", 20, 440, 400);
+			ctx.font = "24" + fontfamily;
+			ctx.fillStyle = "black";
+			ctx.fillText("kok-s0s/散文不倦", 50, 477, 200);
+
+			// 插入 QR code 图片
+			let qrcodeImg = new Image();
+			qrcodeImg.onload = () => {
+				ctx.drawImage(
+					qrcodeImg,
+					myCanvas.width - 80,
+					myCanvas.height - 80
+				);
+			};
+			qrcodeImg.src = "blog-qrcode.png";
+
+			// 插入封面（手动更换 src）
+			let cover = new Image();
+			cover.onload = () => {
+				ctx.drawImage(cover, 0, 0, 400, 400);
+			};
+			cover.src = "fine.jpeg";
+		};
+
+		getCanvasImage();
+
+		// 生成 QR code
+		btnUpdate.addEventListener("click", () => {
+			let qrText = document.getElementById("text");
+			let reg =
+				/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi;
+			if (!reg.exec(qrText.value)) {
+				alert("请输入有效链接");
+				qrText.focus();
+				return;
+			}
+
+			qrcode.makeCode(qrText.value);
+		});
+
+		// 存储生成的 QR code 图片
+		btnSaveQrCode.addEventListener("click", () => {
+			let a = document.createElement("a");
+			a.href = document.querySelector("#getQrSrc").src;
+			a.download = "blog-qrcode.png";
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+		});
+
+		// 效果预览与下载
+		btnDisplay.addEventListener("click", () => {
+			const dataURI = myCanvas.toDataURL("image/jpeg", 1);
+			imgConverted.src = dataURI;
+		});
+
+		btnDownload.addEventListener("click", () => {
+			// IE/Edge 仅支持 PNG 格式
+			if (window.navigator.msSaveBlob) {
+				window.navigator.msSaveBlob(
+					myCanvas.msToBlob(),
+					"blog-image.png"
+				);
+			} else {
+				const a = document.createElement("a");
+				document.body.appendChild(a);
+				a.href = myCanvas.toDataURL("image/jpeg", 1);
+				a.download = "blog-image.jpg";
+				a.click();
+				document.removeChild(a);
+			}
+		});
+	</script>
+</html>
